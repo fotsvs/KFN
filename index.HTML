@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>DnD Co-Op Adventure</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+        .critical-hit { color: green; font-weight: bold; }
+        .critical-fail { color: red; font-weight: bold; }
+        #log-box { background: #f4f4f4; padding: 10px; border-radius: 5px; height: 120px; overflow-y: auto; border: 1px solid #ccc; }
+    </style>
 </head>
 <body>
 
@@ -15,24 +21,91 @@
         <p>Life (HP): <span id="char-hp">10</span>/10</p>
     </div>
 
-    <hr> <!-- Μια απλή οριζόντια γραμμή διαχωρισμού -->
+    <hr>
 
-    <!-- 3. ΤΟ ΚΕΙΜΕΝΟ ΤΗΣ ΙΣΤΟΡΙΑΣ (Εδώ θα εμφανίζεται τι γράφεις εσύ) -->
+    <!-- 3. ΤΟ ΚΕΙΜΕΝΟ ΤΗΣ ΙΣΤΟΡΙΑΣ -->
     <div id="story-box">
         <h2>Η Περιπέτεια Ξεκινά...</h2>
         <p id="story-text">
             Βρίσκεστε μπροστά σε μια βαριά, σκουριασμένη σιδερένια πόρτα. 
-            Από την άλλη πλευρά ακούγεται ένας χαμηλός γρύλισμα. 
+            Από την άλλη πλευρά ακούγεται ένα χαμηλό γρύλισμα. 
             Η σειρά σου να παίξεις, Κώστα!
         </p>
     </div>
 
     <!-- 4. ΚΟΥΜΠΙΑ ΕΝΕΡΓΕΙΑΣ -->
     <div id="actions-box">
-        <button id="btn-action-1">Προσπάθησε να σπάσεις την πόρτα (Θέλει d20 Ζάρι)</button>
+        <p><strong>Βήμα 1:</strong> Διάλεξε μια ενέργεια παρακάτω (Θα ρίξει αυτόματα d20):</p>
+        <button id="btn-action-1">Προσπάθησε να σπάσεις την πόρτα</button>
         <br><br>
         <button id="btn-action-2">Ψάξε στους γύρω τοίχους για κρυφό μοχλό</button>
     </div>
 
+    <hr>
+
+    <!-- 5. ΝΕΟ: ΙΣΤΟΡΙΚΟ ΖΑΡΙΑΣ & ΑΠΟΤΕΛΕΣΜΑΤΩΝ -->
+    <h3>📜 Ιστορικό Μάχης / Ενεργειών</h3>
+    <div id="log-box">
+        <p id="log-placeholder">Δεν έχει γίνει ακόμα κάποια ενέργεια...</p>
+        <ul id="log-list" style="padding-left: 20px; margin: 0;"></ul>
+    </div>
+
+    <!-- 🧠 Η JAVASCRIPT ΠΟΥ ΕΛΕΓΧΕΙ ΤΟ ΠΑΙΧΝΙΔΙ -->
+    <script>
+        // Αποθηκεύουμε τα στοιχεία της HTML σε μεταβλητές της JavaScript
+        const btn1 = document.getElementById('btn-action-1');
+        const btn2 = document.getElementById('btn-action-2');
+        const hpSpan = document.getElementById('char-hp');
+        const logList = document.getElementById('log-list');
+        const logPlaceholder = document.getElementById('log-placeholder');
+
+        // Η τρέχουσα ζωή του παίκτη (ξεκινάει από 10)
+        let currentHp = 10;
+
+        // Συνάρτηση για τη ρίψη ζαριού d20 (1 έως 20)
+        function rollD20() {
+            return Math.floor(Math.random() * 20) + 1;
+        }
+
+        // Συνάρτηση που προσθέτει ένα μήνυμα στο Ιστορικό (Log)
+        function addToLog(message) {
+            logPlaceholder.style.display = 'none'; // Κρύβει το αρχικό κείμενο
+            const li = document.createElement('li');
+            li.innerHTML = message;
+            logList.appendChild(li);
+        }
+
+        // ΕΝΕΡΓΕΙΑ 1: Σπάσιμο Πόρτας
+        btn1.addEventListener('click', function() {
+            if (currentHp <= 0) return alert("Είσαι νεκρός! Δεν μπορείς να παίξεις.");
+
+            const roll = rollD20();
+            
+            if (roll >= 12) {
+                // Επιτυχία!
+                addToLog(`Έριξες <span class="critical-hit">${roll}</span>: Έσπασες την πόρτα με επιτυχία και μπήκες στο επόμενο δωμάτιο!`);
+            } else {
+                // Αποτυχία - Χάνει 2 HP
+                currentHp = currentHp - 2;
+                if (currentHp < 0) currentHp = 0;
+                hpSpan.innerText = currentHp; // Ενημέρωση της οθόνης
+                
+                addToLog(`Έριξες <span class="critical-fail">${roll}</span>: Η πόρτα ήταν πολύ σκληρή. Χτύπησες τον ώμο σου και έχασες 2 HP!`);
+            }
+        });
+
+        // ΕΝΕΡΓΕΙΑ 2: Ψάξιμο για Μοχλό
+        btn2.addEventListener('click', function() {
+            if (currentHp <= 0) return alert("Είσαι νεκρός!");
+
+            const roll = rollD20();
+            
+            if (roll >= 10) {
+                addToLog(`Έριξες <span class="critical-hit">${roll}</span>: Βρήκες έναν κρυφό μοχλό! Η πόρτα ανοίγει αργά και αθόρυβα.`);
+            } else {
+                addToLog(`Έριξες <span class="critical-fail">${roll}</span>: Δεν βρήκες τίποτα απολύτως στους τοίχους εκτός από σκόνη.`);
+            }
+        });
+    </script>
 </body>
 </html>
